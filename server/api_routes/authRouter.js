@@ -2,14 +2,9 @@ import { Router } from "express";
 import * as db from "../db/queries.js";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-import path from 'path';
+import 'dotenv/config';
 import ServerError from "../utils/ServerError.js";
 const authRouter = Router();
-
-dotenv.config({
-  path: path.resolve(process.cwd(), '../.env')
-});
 
 authRouter.post('/login', async (req, res, next) => {
     const { username, password } = req.body;

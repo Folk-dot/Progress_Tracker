@@ -6,6 +6,8 @@ import ErrorMsg from "./Error.jsx";
 import useFetch from "../utils/useFetch.jsx";
 import useAddNew from "../utils/useAddNew.jsx";
 import useEdit from "../utils/useEdit.jsx";
+import 'dotenv/config';
+const api_path = process.env.REACT_APP_API_URL;
 
 export function Homepage(){
   return (<>
@@ -34,8 +36,9 @@ export function Login(){
       username: formData.get('username').toLowerCase(),
       password: formData.get('password') 
     }
+    
     try{
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch(`${api_path}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -94,7 +97,7 @@ export function Register(){
       password: formData.get('password') 
     }
     try{
-      const response = await fetch('http://localhost:3000/api/auth/register', {
+      const response = await fetch(`${api_path}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -144,10 +147,9 @@ export function Register(){
 
 export function Projects(){
   const [ projectAdded, setProjectAdded ] = useState(false);
-  const api_path = 'http://localhost:3000/api/projects';
   const [ errMsg, setErrMsg ] = useState('');
-  const [ inputRef, value, isAdding, handleChange, handleClick, handleBlur ] = useAddNew(api_path, 'project_name', setProjectAdded, setErrMsg);
-  const [ data, isLoading ] = useFetch(api_path, projectAdded, setErrMsg);
+  const [ inputRef, value, isAdding, handleChange, handleClick, handleBlur ] = useAddNew(`${api_path}/api/projects`, 'project_name', setProjectAdded, setErrMsg);
+  const [ data, isLoading ] = useFetch(`${api_path}/api/projects`, projectAdded, setErrMsg);
   const navigate = useNavigate();
   
   const handleLogout = () => {
@@ -190,12 +192,11 @@ export function Projects(){
 export function Todolist(){
   const [ listAdded, setListAdded ] = useState(false);
   const { project_id } = useParams();
-  const api_path = `http://localhost:3000/api/projects/${project_id}`
   const [ errMsg, setErrMsg ] = useState('');
   const [ lists, setLists ] = useState([]);
-  const [ data, isLoading ] = useFetch(`${api_path}/todo-lists`, listAdded, setErrMsg);
-  const [ inputRef, value, isAdding, handleChange, handleClick, handleBlur ] = useAddNew(`${api_path}/todo-lists`, 'list_name', setListAdded, setErrMsg);
-  const [ isEditing, handleEdit, handleDelete, handleUnsave, handleSave, handleToggle, handleHeader] = useEdit(api_path, setListAdded, setLists, setErrMsg);
+  const [ data, isLoading ] = useFetch(`${api_path}/api/projects/${project_id}/todo-lists`, listAdded, setErrMsg);
+  const [ inputRef, value, isAdding, handleChange, handleClick, handleBlur ] = useAddNew(`${api_path}/api/projects/${project_id}/todo-lists`, 'list_name', setListAdded, setErrMsg);
+  const [ isEditing, handleEdit, handleDelete, handleUnsave, handleSave, handleToggle, handleHeader] = useEdit(`${api_path}/api/projects/${project_id}`, setListAdded, setLists, setErrMsg);
 
   useEffect(() => {
     setLists(data?.body);

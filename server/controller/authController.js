@@ -1,11 +1,6 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-import path from 'path';
+import 'dotenv/config';
 import ServerError from '../utils/ServerError.js';
-
-dotenv.config({
-  path: path.resolve(process.cwd(), '../.env')
-});
 
 export default function authMiddleware (req, res, next) {
     const secret = process.env.PRIVATE_KEY;

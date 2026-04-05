@@ -8,18 +8,23 @@ export default function useAddNew (api_path, topic, setUpdated, setErrMsg) {
     const navigate = useNavigate();
 
     useEffect(() => {
-        inputRef.current?.focus();
+        if ( isAdding ) {
+            inputRef.current?.focus();
+        }
     },[ isAdding ])
 
-    const handleBlur = async() => {
-        setUpdated(false)
+    const handleInsert = async() => {
+        setErrMsg('')
         if ( !value.trim() ) {
             setValue('');
             setIsAdding(false);
             return;
         }
         const token = localStorage.getItem('token');
-        setErrMsg('')
+        if ( !token ) {
+            navigate('/login');
+            return
+        }
         try{
             const response = await fetch(api_path, {
                 method: 'POST',
@@ -30,7 +35,9 @@ export default function useAddNew (api_path, topic, setUpdated, setErrMsg) {
                 body: JSON.stringify({ [topic]: value })
             })
             if ( response.status === 401 ){
-                throw new Error('Unauthorized');
+                localStorage.removeItem('token');
+                navigate('/login');
+                return;
             }   
             if ( !response.ok ) {
                 throw new Error('Insertion error')
@@ -48,9 +55,22 @@ export default function useAddNew (api_path, topic, setUpdated, setErrMsg) {
         setValue(e.target.value);
     }
 
-    const handleClick = () => {
+    const handleEdit = () => {
         setIsAdding(true);
     }
 
-    return [ inputRef, value, isAdding, handleChange, handleClick, handleBlur ];
+    return { 
+        input: {
+            ref: inputRef,
+            value,
+            onChange: handleChange,
+            onBlur: handleInsert
+        },
+        actions: {
+            adding: handleEdit
+        },
+        state: {
+            isAdding
+        }
+    }; 
 }

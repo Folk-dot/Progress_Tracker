@@ -7,6 +7,7 @@ import useFetch from "../utils/useFetch.jsx";
 import useAddNew from "../utils/useAddNew.jsx";
 import useEdit from "../utils/useEdit.jsx";
 const api_path = import.meta.env.VITE_API_URL;
+const navigate = useNavigate();
 
 export function Homepage(){
   return (<>
@@ -22,10 +23,9 @@ export function Homepage(){
 }
 
 export function Login(){
-  const navigate = useNavigate();
   const [ isLoading, setIsLoading ] = useState(false);
   const [ error, setError ] = useState('');
-
+    
   const handleSubmit = async(e) => {
     e.preventDefault();
     setError('');
@@ -147,42 +147,47 @@ export function Register(){
 export function Projects(){
   const [ projectAdded, setProjectAdded ] = useState(false);
   const [ errMsg, setErrMsg ] = useState('');
-  const [ inputRef, value, isAdding, handleChange, handleClick, handleBlur ] = useAddNew(`${api_path}/api/projects`, 'project_name', setProjectAdded, setErrMsg);
-  const [ data, isLoading ] = useFetch(`${api_path}/api/projects`, projectAdded, setErrMsg);
+  const { input, actions, state } = useAddNew(`${api_path}/api/projects`, 'project_name', setProjectAdded, setErrMsg);
+  const { data, isLoading }= useFetch(`${api_path}/api/projects`, projectAdded, setErrMsg);
   const navigate = useNavigate();
   
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/');
+    return;
   }
+
+  if ( isLoading ) {
+    return <p>Loading...</p>;
+  };
+
   return(<>
     <div className='flexStart'>
       <div className='projects'>
         { errMsg && <ErrorMsg msg={errMsg} /> }
         <div className="header">
-          <h1>{`Hello ${data?.header}!`}</h1>
+          <h1>{`Hello ${data.header}!`}</h1>
           <button onClick={ handleLogout }>Logout</button>
         </div>
-        <h2>{ data?.body?.length < 1 ? 'You have no project' : 'Here are your projects:'}</h2>
-        { isLoading && <p>Loading...</p>}
-        { data?.body?.map(({ project_id, project_name }) => 
+        <h2>{ data.body.length < 1 ? 'You have no project' : 'Here are your projects:'}</h2>
+        { data.body.map(({ project_id, project_name }) => 
           <div className="card" key={project_id}>
             <Link  to={`/projects/${project_id}/todo-lists`}>
               {project_name}
             </Link>
           </div>
         )}
-        { isAdding ? 
+        { state.isAdding ? 
           <input 
-            ref={ inputRef }
+            ref={ input.ref }
             type='text' 
             name='new-project' 
             id='new-project' 
-            value={ value } 
-            onChange={ handleChange } 
-            onBlur={ handleBlur } 
+            value={ input.value } 
+            onChange={ input.onChange } 
+            onBlur={ input.onBlur } 
           /> 
-          : <button className='addProject' onClick={ handleClick }>add project</button> }
+          : <button className='addProject' onClick={ actions.adding }>add project</button> }
       </div>
     </div>
   </>)

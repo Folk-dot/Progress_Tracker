@@ -7,18 +7,25 @@ export default function useFetch (api_path, trigger, setErrMsg) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchData = async() => {
       setIsLoading(true);
       setErrMsg('');
       try{
         const token = localStorage.getItem('token');
+        if ( !token ) {
+          navigate('/login');
+          return;
+        }
         const response = await fetch(api_path, {
+          signal: controller.signal,
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` }
         })
         if ( response.status === 401 ){
+          localStorage.removeItem('token');
           navigate('/login');
-          return
+          return;
         }
         const data = await response.json();
         if ( !response.ok ) {
@@ -26,12 +33,16 @@ export default function useFetch (api_path, trigger, setErrMsg) {
         }
         setData(data);
       }catch (err) {
-        setErrMsg(err.message);
+        if ( err.name !== 'AbortError' ) {
+          setErrMsg(err.message);
+        }
       }finally{
         setIsLoading(false);
       }
     }
     fetchData();
-  }, [trigger])
-  return [ data, isLoading ]
+    return () => controller.abort();
+  }, [api_path, trigger, setErrMsg])
+
+  return { data, isLoading }
 }

@@ -35,7 +35,7 @@ export function Login(){
       username: formData.get('username').toLowerCase(),
       password: formData.get('password') 
     }
-    console.log(api_path)
+
     try{
       const response = await fetch(`${api_path}/api/auth/login`, {
         method: 'POST',

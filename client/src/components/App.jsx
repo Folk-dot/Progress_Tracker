@@ -151,16 +151,16 @@ export function Projects(){
   const { data, isLoading }= useFetch(`${api_path}/api/projects`, projectAdded, setErrMsg);
   const navigate = useNavigate();
   
+  if ( isLoading ) {
+    return <p>Loading...</p>;
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/');
     return;
   }
-
-  if ( isLoading ) {
-    return <p>Loading...</p>;
-  };
-
+  
   return(<>
     <div className='flexStart'>
       <div className='projects'>
@@ -206,14 +206,18 @@ export function Todolist(){
     setLists(data?.body);
   }, [data]);
 
-return (<>
-  <div class='todoLists'>
-    { errMsg && <ErrorMsg msg={errMsg} /> }
-    <h1 key={data?.header} contentEditable suppressContentEditableWarning onBlur={ (e) => e.target.textContent === data.header ? '' : handleHeader(e.target.textContent) }>{data?.header}</h1>
-    <h2>Todo Lists:</h2>
-    { isLoading && <p>Loading...</p> }
-    <div className='container'>
-      { lists?.map(({ list_id, list_name, completed }) => 
+  if ( isLoading ) {
+    return <p>Loading...</p>
+  }
+
+  return (<>
+    <div class='todoLists'>
+      { errMsg && <ErrorMsg msg={errMsg} /> }
+      <h1 key={data.header} contentEditable suppressContentEditableWarning onBlur={ (e) => e.target.textContent === data.header ? '' : handleHeader(e.target.textContent) }>{data?.header}</h1>
+      <h2>Todo Lists:</h2>
+      { isLoading && <p>Loading...</p> }
+      <div className='container'>
+        { lists?.map(({ list_id, list_name, completed }) => 
         <div className="card" key={list_id}>
           <div className='left'>
             <input 

@@ -22,7 +22,7 @@ authRouter.post('/login', async (req, res, next) => {
         res.status(200).json({
             message: 'Login success',
             token})
-        return;
+        return; 
     }catch (err) {
         next(err);
     }

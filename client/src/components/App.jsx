@@ -6,8 +6,7 @@ import ErrorMsg from "./Error.jsx";
 import useFetch from "../utils/useFetch.jsx";
 import useAddNew from "../utils/useAddNew.jsx";
 import useEdit from "../utils/useEdit.jsx";
-import 'dotenv/config';
-const api_path = process.env.REACT_APP_API_URL;
+const api_path = import.meta.env.VITE_API_URL;
 
 export function Homepage(){
   return (<>
@@ -36,7 +35,7 @@ export function Login(){
       username: formData.get('username').toLowerCase(),
       password: formData.get('password') 
     }
-    
+    console.log(api_path)
     try{
       const response = await fetch(`${api_path}/api/auth/login`, {
         method: 'POST',

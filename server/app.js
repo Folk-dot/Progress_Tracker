@@ -16,10 +16,6 @@ app.use(cors({
     origin: ['http://localhost:5173', process.env.FRONTEND_URL].filter(Boolean)
 }))
 
-app.get('/', (req, res) => {
-    res.send('Hello Render!')
-})
-
 app.use('/api/projects', projectsRouter);
 app.use('/api/auth', authRouter);
 app.use((err, req, res , next) => {

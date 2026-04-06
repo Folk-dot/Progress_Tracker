@@ -8,19 +8,12 @@ export default function useProjects (api_path, setRefetch, setErrMsg) {
     const navigate = useNavigate();
     
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if ( !token) {
-            navigate('/login');
-        }
-    }, [ navigate ]);
-
-    useEffect(() => {
         if ( isAdding ) {
             inputRef.current?.focus();
         }
     },[ isAdding ])
 
-    const insertProject = async() => {
+    const insertItem = async() => {
         setErrMsg('')
         if ( !value.trim() ) {
             setValue('');
@@ -71,9 +64,9 @@ export default function useProjects (api_path, setRefetch, setErrMsg) {
             ref: inputRef,
             value,
             onChange: handleChange,
-            onBlur: insertProject
+            onBlur: insertItem
         },
-        button: {
+        actions: {
             adding: handleAdding
         },
         state: {

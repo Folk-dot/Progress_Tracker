@@ -1,13 +1,13 @@
 import '../styles/App.css';
 import { Link, useParams } from "react-router"
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import ErrorMsg from "./Error.jsx";
-import useFetch from "../utils/useFetch.jsx";
-import useAddNew from "../utils/useAddNew.jsx";
-import useEdit from "../utils/useEdit.jsx";
+import ErrorMsg from "../components/Error.jsx";
+import useFetch from "../hooks/useFetch.jsx";
+import useProjects from "../hooks/useProjects.jsx"
+import useTodoLists from '../hooks/useTodoLists.jsx';
+import Menu from "../components/Menu.jsx";
 const api_path = import.meta.env.VITE_API_URL;
-const navigate = useNavigate();
 
 export function Homepage(){
   return (<>
@@ -25,6 +25,7 @@ export function Homepage(){
 export function Login(){
   const [ isLoading, setIsLoading ] = useState(false);
   const [ error, setError ] = useState('');
+  const navigate = useNavigate();
     
   const handleSubmit = async(e) => {
     e.preventDefault();
@@ -59,7 +60,7 @@ export function Login(){
   }
 
   return (<>
-    <div className='entry'>
+    <div className='login'>
       <form onSubmit={ handleSubmit }>
         <h1>LOGIN</h1>
         <label htmlFor="username">Email: 
@@ -118,7 +119,7 @@ export function Register(){
   };
 
   return(<>
-    <div className='entry'>
+    <div className='register'>
       <form onSubmit ={ handleSubmit}>
         <h1>CREATE AN ACCOUNT</h1>
         <label htmlFor="first_name">Firstname:
@@ -145,10 +146,11 @@ export function Register(){
 }
 
 export function Projects(){
-  const [ projectAdded, setProjectAdded ] = useState(false);
+  const projects_path = `${api_path}/api/projects`;
+  const [ refetch, setRefetch ] = useState(false);
   const [ errMsg, setErrMsg ] = useState('');
-  const { input, actions, state } = useAddNew(`${api_path}/api/projects`, 'project_name', setProjectAdded, setErrMsg);
-  const { data, isLoading }= useFetch(`${api_path}/api/projects`, projectAdded, setErrMsg);
+  const { data, isLoading } = useFetch(projects_path, refetch, setErrMsg);
+  const { input, button, state } = useProjects(projects_path, setRefetch, setErrMsg);
   const navigate = useNavigate();
   
   if ( isLoading ) {
@@ -162,48 +164,49 @@ export function Projects(){
   }
   
   return(<>
-    <div className='flexStart'>
-      <div className='projects'>
-        { errMsg && <ErrorMsg msg={errMsg} /> }
-        <div className="header">
-          <h1>{`Hello ${data.header}!`}</h1>
-          <button onClick={ handleLogout }>Logout</button>
-        </div>
-        <h2>{ data.body.length < 1 ? 'You have no project' : 'Here are your projects:'}</h2>
+    <div className='projects'>
+      { errMsg && <ErrorMsg msg={errMsg} /> }
+      <div className="header">
+        <h1>{`Hello ${data.header}!`}</h1>
+        <button onClick={ handleLogout }>Logout</button>
+      </div>
+      <h2>{ data.body.length < 1 ? 'You have no project' : 'Here are your projects:'}</h2>
+      <div className='projectCardContainer'>
         { data.body.map(({ project_id, project_name }) => 
-          <div className="card" key={project_id}>
+          <div className="projectCard" key={project_id}>
             <Link  to={`/projects/${project_id}/todo-lists`}>
               {project_name}
             </Link>
           </div>
         )}
-        { state.isAdding ? 
-          <input 
-            ref={ input.ref }
-            type='text' 
-            name='new-project' 
-            id='new-project' 
-            value={ input.value } 
-            onChange={ input.onChange } 
-            onBlur={ input.onBlur } 
-          /> 
-          : <button className='addProject' onClick={ actions.adding }>add project</button> }
       </div>
+
+      { state.isAdding ? 
+        <input 
+          ref={ input.ref }
+          type='text' 
+          name='new-project' 
+          id='new-project' 
+          value={ input.value } 
+          onChange={ input.onChange } 
+          onBlur={ input.onBlur } 
+        /> 
+        : <button className='addProject' onClick={ button.adding }>add project</button> }
     </div>
   </>)
 }
 
 export function Todolist(){
-  const [ listAdded, setListAdded ] = useState(false);
   const { project_id } = useParams();
+  const project_id_path = `${api_path}/api/projects/${project_id}`;
+  const [ refetch, setRefetch ] = useState(false);
   const [ errMsg, setErrMsg ] = useState('');
   const [ lists, setLists ] = useState([]);
-  const [ data, isLoading ] = useFetch(`${api_path}/api/projects/${project_id}/todo-lists`, listAdded, setErrMsg);
-  const [ inputRef, value, isAdding, handleChange, handleClick, handleBlur ] = useAddNew(`${api_path}/api/projects/${project_id}/todo-lists`, 'list_name', setListAdded, setErrMsg);
-  const [ isEditing, handleEdit, handleDelete, handleUnsave, handleSave, handleToggle, handleHeader] = useEdit(`${api_path}/api/projects/${project_id}`, setListAdded, setLists, setErrMsg);
+  const { data, isLoading } = useFetch(`${project_id_path}/todo-lists`, refetch, setErrMsg);
+  const { input, button, header, state } = useTodoLists(project_id_path, setLists, setRefetch, setErrMsg);
 
   useEffect(() => {
-    setLists(data?.body);
+    setLists(data.body);
   }, [data]);
 
   if ( isLoading ) {
@@ -213,44 +216,44 @@ export function Todolist(){
   return (<>
     <div class='todoLists'>
       { errMsg && <ErrorMsg msg={errMsg} /> }
-      <h1 key={data.header} contentEditable suppressContentEditableWarning onBlur={ (e) => e.target.textContent === data.header ? '' : handleHeader(e.target.textContent) }>{data?.header}</h1>
+      <h1 key={data.header} contentEditable suppressContentEditableWarning onBlur={ (e) => e.target.textContent === data.header ? '' : header.update(e.target.textContent) }>{data.header}</h1>
       <h2>Todo Lists:</h2>
-      { isLoading && <p>Loading...</p> }
-      <div className='container'>
-        { lists?.map(({ list_id, list_name, completed }) => 
-        <div className="card" key={list_id}>
-          <div className='left'>
-            <input 
-                type='checkbox' 
-                onChange={ () => handleToggle(list_id) }
-                checked={ completed }
-                id={`list-${list_id}`}
-              />
-            <label htmlFor={`list-${list_id}`}>
-              {list_name}
-            </label>
-          </div>
-          {isEditing && <button className='deleteBtn' onClick={()=>handleDelete(list_id)}>-</button>}
-        </div>  
-      )}
-    </div>
-    { isEditing ?
-      <div className='saveContainer'>
-        <button id='discardBtn' onClick={ handleUnsave }>Discard</button>
-        <button id='saveBtn' onClick={ handleSave }>Save</button> 
-      </div> 
-      : (isAdding ? 
-        <input 
-          ref={ inputRef }
-          type='text'
-          value={ value }
-          onChange={ handleChange }
-          onBlur={ handleBlur }
-        /> 
-        : <div className='editContainer'>
-            <button id='editBtn' onClick={ handleEdit }>Edit</button> 
-            <button id='addListBtn' onClick={ handleClick }>Add todo-list</button>
-          </div>) }
+      <div className='listCardContainer'>
+        { lists.map(({ list_id, list_name, completed }) => 
+          <div className="listCard" key={list_id}>
+            <div className='left'>
+              <input 
+                  type='checkbox' 
+                  onChange={ () => input.onToggle }
+                  checked={ completed }
+                  id={`list-${list_id}`}
+                />
+              <label htmlFor={`list-${list_id}`}>
+                {list_name}
+              </label>
+            </div>
+            { state.isEditing && <button className='deleteBtn' onClick={()=>button.deleteList(list_id)}>-</button>}
+          </div>  
+        )}
+      </div>
+      { state.isEditing ?
+        <div className='saveContainer'>
+          <button id='discardBtn' onClick={ button.discard }>Discard</button>
+          <button id='saveBtn' onClick={ button.save }>Save</button> 
+        </div> 
+        : (state.isAdding ? 
+          <input 
+            ref={ input.ref }
+            type='text'
+            value={ input.value }
+            onChange={ input.onChange }
+            onBlur={ input.onBlur }
+          /> 
+          : <div className='editContainer'>
+              <button id='editBtn' onClick={ button.edit }>Edit</button> 
+              <button id='addListBtn' onClick={ button.add }>Add todo-list</button>
+            </div>)
+        }
     <Link to='/projects'>Back</Link>
   </div>
   </>)

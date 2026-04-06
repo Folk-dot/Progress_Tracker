@@ -1,4 +1,4 @@
-import { Homepage, Login, Register, Projects, Todolist } from "./components/App";
+import { Homepage, Login, Register, Projects, Todolist } from "./App.jsx";
 
 const routes = [
     {

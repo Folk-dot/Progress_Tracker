@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 export default function useFetch (api_path, refetch, setErrMsg) {
-  const [ data, setData ] = useState([]);
+  const [ data, setData ] = useState({ body: [], header: '' });
   const [ isLoading, setIsLoading ] = useState(false);
   const navigate = useNavigate();
 

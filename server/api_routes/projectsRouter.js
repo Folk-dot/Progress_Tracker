@@ -37,6 +37,15 @@ projectsRouter.patch('/:project_id', async(req, res, next) => {
         next(err);
     }
 })
+projectsRouter.delete('/:project_id', async(req, res, next) => {
+    const {project_id} = req.params;
+    try {
+        await db.deleteProject(project_id);
+        res.sendStatus(204);
+    }catch (err) {
+        next(err);
+    }
+})
 projectsRouter.get('/:project_id/todo-lists', async(req, res, next) => {
     const { project_id } = req.params;
     const { user_id } = req.user;

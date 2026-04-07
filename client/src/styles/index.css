@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+body {
+  @apply font-mono;
+}
+
+.day-mode {
+  @apply bg-gradient-to-br from-blue-50 to-gray-100;
+}
+
+.centerized {
+  @apply min-h-screen flex items-center justify-center bg-gray-100;
+}
+
+.btn-motion {
+  @apply hover:-translate-y-0.5 transition-all duration-200 ease-in-out;
+}
+
+.register-label {
+  @apply block text-sm text-gray-700 mb-1;
+}
+
+.register-input {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500;
+}

@@ -28,12 +28,12 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
         })
         if ( response.status === 401 ) {
             unauth();
-            return null
+            return;
         }
         if ( !response.ok ) {
             throw new Error("Request failed");
         }
-        return response;
+        return;
     }
 
     useEffect(() => {
@@ -121,15 +121,10 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
         }
     }
 
-    const handleToggle = (list_id) => {
-        let newStatus;
-        setLists(prev => prev.map(list => {
-        if (list.list_id === list_id ) {
-            newStatus = !list.completed;
-            return { ...list, completed: newStatus }
-        } 
-            return list;
-        }));
+    const handleToggle = (list_id, newStatus) => {
+        setLists(prev => prev.map(list => 
+            list.list_id === list_id  ? { ...list, completed: newStatus } : list
+        ));
         updateStatus(list_id, newStatus);
     };
 
@@ -147,6 +142,7 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
             await fetchTemplate(api_path, 'DELETE', null);
         }catch (err) {
             setErrMsg(err.message);
+            throw new Error('failed to delete')
         }
     }
 
@@ -160,11 +156,11 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
         },
         button: {
             add: handleAdding,
-            deleteList: deleteList,
+            deleteList,
             edit: handleEditing,
             save: handleSave,
             discard: handleDiscard,
-            deleteProject: deleteProject
+            deleteProject
         },
         header: {
             update: updateHeader

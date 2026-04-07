@@ -41,3 +41,7 @@ export const deleteTodoList = async(removedListsArr) => {
 export const updateProjectName = async(project_id, newName) => {
         await pool.query("UPDATE projects SET project_name = $1 WHERE project_id = $2", [ newName, project_id ]);
 }
+
+export const deleteProject = async (project_id) => {
+        await pool.query("DELETE FROM projects WHERE project_id = $1", [ project_id ]);
+}

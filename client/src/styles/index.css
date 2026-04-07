@@ -5,7 +5,7 @@ body {
 }
 
 .day-mode {
-  @apply bg-gradient-to-br from-blue-50 to-gray-100;
+  @apply bg-linear-to-br from-blue-50 to-gray-100;
 }
 
 .centerized {

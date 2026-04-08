@@ -3,10 +3,10 @@ import 'dotenv/config';
 import projectsRouter from './api_routes/projectsRouter.js';
 import authRouter from './api_routes/authRouter.js';
 import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -28,10 +28,10 @@ app.use((err, req, res , next) => {
         fields: err.fields || {}
     })
 })
-app.use(express.static(path.join(__dirname, '../client/dist')));
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+// app.use(express.static(path.join(__dirname, '../client/dist')));
+// app.use((req, res) => {
+//   res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+// });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

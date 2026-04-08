@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
+import ClientError from "../utils/ClientError";
 
 export default function useProjects (api_path, setRefetch, setErrMsg) {
     const [ value, setValue ] = useState('');
@@ -10,6 +11,7 @@ export default function useProjects (api_path, setRefetch, setErrMsg) {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if ( !token) {
+            console.error('UNAUTHORIZED');
             navigate('/login');
         }
     }, [ navigate ]);
@@ -21,7 +23,7 @@ export default function useProjects (api_path, setRefetch, setErrMsg) {
     },[ isAdding ])
 
     const insertProject = async() => {
-        setErrMsg('')
+        setErrMsg({ message: '', fields: {} })
         if ( !value.trim() ) {
             setValue('');
             setIsAdding(false);
@@ -41,17 +43,20 @@ export default function useProjects (api_path, setRefetch, setErrMsg) {
                 },
                 body: JSON.stringify({ project_name: value })
             })
-            if ( response.status === 401 ){
-                localStorage.removeItem('token');
-                navigate('/login');
-                return;
-            }   
-            if ( !response.ok ) {
-                throw new Error('Insertion error')
+            const data = await response.json();
+            if ( !response.ok ){
+                if ( data.status === 401 ) {
+                    console.error(data.code);
+                    localStorage.removeItem('token');
+                    navigate('/login');
+                    return;
+                }
+                throw new ClientError(data);
             }
             setRefetch(prev => !prev);
         }catch (err) {
-            setErrMsg(err.message);
+            console.error(err.code);
+            setErrMsg({ message: err.message, fields: err.fields });
         }finally{
             setValue('');
             setIsAdding(false);

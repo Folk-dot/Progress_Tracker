@@ -14,6 +14,6 @@ export default function authMiddleware (req, res, next) {
         req.user = decoded;
         next(); 
     }catch (err) {
-        next(new ServerError("Authentication failed", 401));
+        next(new ServerError('UNAUTHORIZED', "Authentication failed", 401));
     }
 }

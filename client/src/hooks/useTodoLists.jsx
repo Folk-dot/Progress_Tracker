@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router";
+import ClientError from "../utils/ClientError";
 
 export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg) {
     const [ value, setValue ] = useState('');
@@ -12,11 +13,13 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
     const getToken = () => localStorage.getItem('token');
 
     const unauth = useCallback(() => {
+        console.error('UNAUTHORIZED')
         localStorage.removeItem('token');
         navigate('/login');
     }, [ navigate ]);
 
     const fetchTemplate = async(path, method, body) => {
+        setErrMsg({ message: '', fields: {} })
         const token = getToken();
         const response = await fetch(path, {
             method,
@@ -26,12 +29,16 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
             },
             ...( body && { body: JSON.stringify(body) })
         })
-        if ( response.status === 401 ) {
-            unauth();
+        if ( response.status === 204 ) {
             return;
         }
-        if ( !response.ok ) {
-            throw new Error("Request failed");
+        const data = await response.json();
+        if ( !response.ok ) {        
+            if ( data.status === 401 ) {
+                unauth();
+                return;
+            }
+            throw new ClientError(data);
         }
         return;
     }
@@ -50,7 +57,6 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
     },[ isAdding ])
 
     const insertItem = async() => {
-        setErrMsg('')
         if ( !value.trim() ) {
             setValue('');
             setIsAdding(false);
@@ -60,7 +66,8 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
             await fetchTemplate(`${api_path}/todo-lists`, 'POST', {list_name: value})
             setRefetch(prev => !prev);
         }catch (err) {
-            setErrMsg(err.message);
+            console.error(err.code);
+            setErrMsg({ message: err.message, fields: err.fields });
         }finally{
             setValue('');
             setIsAdding(false);
@@ -80,11 +87,11 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
     }
 
     const updateHeader = async(newHeader) =>{
-        setErrMsg('');
         try{
             await fetchTemplate(api_path, 'PATCH', {newHeader})
         }catch (err) {
-            setErrMsg(err.message);
+            console.error(err.code);
+            setErrMsg({ message: err.message, fields: err.fields });
         };
     }
 
@@ -105,7 +112,6 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
     }
 
     const handleSave = async() => {
-        setErrMsg('');
         if ( removeRef.current.length === 0 ) {
             setIsEditing(false);
             return;
@@ -113,7 +119,8 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
         try{
             await fetchTemplate(`${api_path}/todo-lists`, 'DELETE', removeRef.current)
         }catch (err) {
-            setErrMsg(err.message);
+            console.error(err.code);
+            setErrMsg({ message: err.message, fields: err.fields });
         }finally{
             removeRef.current=[];
             setIsEditing(false);
@@ -129,11 +136,11 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
     };
 
     const updateStatus = async(list_id, newStatus) => {
-        setErrMsg('');
         try{
             await fetchTemplate(`${api_path}/todo-lists/${list_id}`, 'PATCH', {completed: newStatus});
         }catch (err) {
-            setErrMsg(err.message);
+            console.error(err.code);
+            setErrMsg({ message: err.message, fields: err.fields });
         }
     }
 
@@ -141,8 +148,8 @@ export default function useTodoLists (api_path, setLists, setRefetch, setErrMsg)
         try{
             await fetchTemplate(api_path, 'DELETE', null);
         }catch (err) {
-            setErrMsg(err.message);
-            throw new Error('failed to delete')
+            console.error(err.code);
+            setErrMsg({ message: err.message, fields: err.fields });
         }
     }
 

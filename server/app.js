@@ -19,14 +19,19 @@ app.use(cors({
 app.use('/api/projects', projectsRouter);
 app.use('/api/auth', authRouter);
 app.use((err, req, res , next) => {
-    console.log(err);
+    console.error(err);
     res.status(err.status || 500);
-    res.json({ message: err.message })
+    res.json({ 
+        code: err.code || 'SERVER_ERROR',
+        message: err.message || 'Something went wrong. Please try again.',
+        status: err.status || 500,
+        fields: err.fields || {}
+    })
 })
-app.use(express.static(path.join(__dirname, '../client/dist')));
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+// app.use(express.static(path.join(__dirname, '../client/dist')));
+// app.use((req, res) => {
+//   res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+// });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

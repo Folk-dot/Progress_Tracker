@@ -2,12 +2,14 @@ import '../styles/index.css';
 import { Link, useParams } from "react-router"
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import ErrorMsg from "../components/Error.jsx";
+import ErrorMsg from "../components/ErrorMsg.jsx";
 import useFetch from "../hooks/useFetch.jsx";
 import useProjects from "../hooks/useProjects.jsx"
 import useTodoLists from '../hooks/useTodoLists.jsx';
 import Menu from "../components/Menu.jsx";
 import ConfirmModal from '../components/ConfirmModal.jsx';
+import ErrorValidation from '../components/ErrorValidation.jsx';
+import ClientError from '../utils/ClientError.js';
 const api_path = import.meta.env.VITE_API_URL;
 
 export function Homepage(){
@@ -42,19 +44,18 @@ export function Homepage(){
 
 export function Login(){
   const [ isLoading, setIsLoading ] = useState(false);
-  const [ error, setError ] = useState('');
+  const [ errMsg, setErrMsg ] = useState({ message: '', fields: {} });
   const navigate = useNavigate();
-    
+
   const handleSubmit = async(e) => {
     e.preventDefault();
-    setError('');
+    setErrMsg({ message: '', fields: {} });
     setIsLoading(true);
     const formData = new FormData(e.target);
     const userData = { 
       username: formData.get('username').toLowerCase(),
       password: formData.get('password') 
     }
-
     try{
       const response = await fetch(`${api_path}/api/auth/login`, {
         method: 'POST',
@@ -65,13 +66,14 @@ export function Login(){
       })
       const data = await response.json();
       if ( !response.ok ) {
-        throw new Error(data.message);
+        throw new ClientError(data);
       }
       const token = data.token;
       localStorage.setItem('token', token);
       navigate('/projects');
     }catch (err) {
-      setError(err.message);
+      console.error(err.code);
+      setErrMsg({ message: err.message, fields: err.fields });
     }finally {
       setIsLoading(false);
     }
@@ -80,7 +82,7 @@ export function Login(){
   return (<>
     <div className="centerized">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <h1 className="text-2xl font-bold text-center text-gray-900">
             LOGIN
           </h1>
@@ -89,6 +91,7 @@ export function Login(){
               Email
             </label>
             <input
+              required
               type="email"
               name="username"
               id="username"
@@ -96,12 +99,14 @@ export function Login(){
               className="w-full px-4 py-2 border border-gray-300 rounded-lg 
                         focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            { errMsg.fields.username && <ErrorValidation msg={errMsg.fields.username} /> }
           </div>
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <input
+              required
               type="password"
               name="password"
               id="password"
@@ -109,8 +114,9 @@ export function Login(){
               className="w-full px-4 py-2 border border-gray-300 rounded-lg 
                         focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            { errMsg.fields?.password && <ErrorValidation msg={errMsg.fields.password} /> }
           </div>
-          {error && <ErrorMsg msg={error} />}
+          { errMsg.message && <ErrorMsg msg={errMsg.message} />}
           <button
             disabled={isLoading}
             type="submit"
@@ -131,7 +137,6 @@ export function Login(){
             </Link>
           </p>
         </div>
-
       </div>
     </div>
   </>)
@@ -139,12 +144,12 @@ export function Login(){
 
 export function Register(){
   const [ isLoading, setIsLoading ] = useState(false);
-  const [ error, setError ] = useState('');
+  const [ errMsg, setErrMsg ] = useState({ message: '', fields: {} });
   const navigate = useNavigate();
 
   const handleSubmit = async(e) => {
     e.preventDefault();
-    setError('');
+    setErrMsg({ message: '', fields: {} });
     setIsLoading(true);
     const formData = new FormData(e.target);
     const userData = { 
@@ -163,13 +168,14 @@ export function Register(){
       })
       const data = await response.json();
       if ( !response.ok ){
-        throw new Error(data.message);
+        throw new ClientError(data);
       }
       const token = data.token
       localStorage.setItem('token', token);
       navigate('/projects');
     }catch (err) {
-      setError(err.message);
+      console.error(err.code);
+      setErrMsg({ message: err.message, fields: err.fields });
     }finally {
       setIsLoading(false);
     }
@@ -178,7 +184,7 @@ export function Register(){
   return(<>
   <div className='centerized'>
     <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
-      <form onSubmit ={ handleSubmit} className='space-y-5'>
+      <form onSubmit ={ handleSubmit} className='space-y-5' noValidate>
         <h1 className="text-2xl font-bold text-center text-gray-900">
           CREATE AN ACCOUNT
         </h1>
@@ -187,46 +193,54 @@ export function Register(){
             Firstname
           </label>
           <input 
+            required
             type='text' 
             name='first_name' 
             id='first_name' 
             placeholder="please enter your firstname"
             className="register-input"/>
+          { errMsg.fields.first_name && <ErrorValidation msg={errMsg.fields.first_name} /> }
         </div>
         <div>
           <label htmlFor="last_name" className="register-label">
-            Lastname:
+            Lastname
           </label>
           <input 
+            required
             type='text'  
             name='last_name' 
             id='last_name' 
             placeholder="please enter your lastname"
             className="register-input"/>
+          { errMsg.fields.last_name && <ErrorValidation msg={errMsg.fields.last_name} /> }
         </div>
         <div>
           <label htmlFor="username" className="register-label">
-            Email:  
+            Email
           </label>
           <input 
+            required
             type='email'  
             name='username' 
             id='username' 
             placeholder="please enter your email"
             className="register-input"/>
+          { errMsg.fields.username && <ErrorValidation msg={errMsg.fields.username} /> }
         </div>
         <div>
           <label htmlFor="password" className="register-label">
-            Password:
+            Password
           </label>
           <input 
+            required
             type='password' 
             name='password' 
             id='password' 
             placeholder="please enter your password"
             className="register-input"/>
+          { errMsg.fields.password && <ErrorValidation msg={errMsg.fields.password} /> }
         </div>
-        { error && <ErrorMsg msg={error} /> }
+        { errMsg.message && <ErrorMsg msg={errMsg.message} /> }
         <button 
           disabled={ isLoading } 
           type='submit'
@@ -254,7 +268,7 @@ export function Register(){
 export function Projects(){
   const projects_path = `${api_path}/api/projects`;
   const [ refetch, setRefetch ] = useState(false);
-  const [ errMsg, setErrMsg ] = useState('');
+  const [ errMsg, setErrMsg ] = useState({ message: '', fields: {} });
   const { data, isLoading } = useFetch(projects_path, refetch, setErrMsg);
   const { input, button, state } = useProjects(projects_path, setRefetch, setErrMsg);
   const navigate = useNavigate();
@@ -272,7 +286,7 @@ export function Projects(){
   return(<>
     <div className="centerized py-8">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl py-10 px-15 space-y-6">
-        {errMsg && <ErrorMsg msg={errMsg} />}
+        { errMsg.message && <ErrorMsg msg={errMsg.message} /> }
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -284,8 +298,7 @@ export function Projects(){
           </div>
           <button
             onClick={handleLogout}
-            className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 
-                      transition-all duration-200">
+            className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 btn-motion">
             Logout
           </button>
         </div>
@@ -339,7 +352,7 @@ export function Todolist(){
   const { project_id } = useParams();
   const project_id_path = `${api_path}/api/projects/${project_id}`;
   const [ refetch, setRefetch ] = useState(false);
-  const [ errMsg, setErrMsg ] = useState('');
+  const [ errMsg, setErrMsg ] = useState({ message: '', fields: {} });
   const [ lists, setLists ] = useState([]);
   const { data, isLoading } = useFetch(`${project_id_path}/todo-lists`, refetch, setErrMsg);
   const { input, button, header, state } = useTodoLists(project_id_path, setLists, setRefetch, setErrMsg);
@@ -356,8 +369,8 @@ export function Todolist(){
   return (<>
     <div className="centerized py-8">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 space-y-6">
-        {errMsg && <ErrorMsg msg={errMsg} />}
-        {showModal && <ConfirmModal onClose={() => setShowModal(false)} onConfirm={button.deleteProject} />}
+        { errMsg.message && <ErrorMsg msg={errMsg.message} /> }
+        { showModal && <ConfirmModal onClose={() => setShowModal(false)} onConfirm={button.deleteProject} /> }
         <div className="flex items-center justify-between">
           <Link 
             to="/projects" 

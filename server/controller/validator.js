@@ -14,7 +14,7 @@ const validateRegistration = [
 
 const validateLogin = [
     body('username').trim().isEmail().withMessage(`Username ${emailErr}`).notEmpty().withMessage(`Username ${emptyErr}`),
-    body('password').isLength({min:6}).withMessage(`Password ${minPassErr}`).notEmpty().withMessage(`Password ${emptyErr}`)
+    body('password').notEmpty().withMessage(`Password ${emptyErr}`)
 ]
 
 export { validateLogin, validateRegistration };
